@@ -1,11 +1,13 @@
-import { View, StyleSheet, FlatList } from "react-native";
+import { StyleSheet, FlatList, Pressable, View } from "react-native";
 import React, { useState } from "react";
 import { useTheme, Text, Button } from "react-native-paper";
 import { Search } from "@/components/Search";
+import ItemSelected from "@/components/ItemSelected";
 
 const DashboardScreen = () => {
   const theme = useTheme();
   const [searchValue, setSearchValue] = useState<string>("");
+
   const [itemsSelectedList, setItemsSelectedList] = useState<string[] | []>([]);
   const dashboardScreenStyle = StyleSheet.create({
     container: {
@@ -20,12 +22,12 @@ const DashboardScreen = () => {
     setSearchValue("");
   };
 
+  const onRemovePress = (text: string) => {
+    setItemsSelectedList((prev) => prev.filter((item) => item !== text));
+  };
+
   const renderItems = ({ item }: { item: string }): React.ReactElement => (
-    <View style={{ backgroundColor: "#5dbb63", padding: 20 }}>
-      <Text variant="titleLarge" style={{ color: "#fff", fontWeight: "800" }}>
-        {item}
-      </Text>
-    </View>
+    <ItemSelected itemName={item} onRemovePress={() => onRemovePress(item)} />
   );
   return (
     <View style={dashboardScreenStyle.container}>
@@ -40,7 +42,11 @@ const DashboardScreen = () => {
         keyExtractor={(text) => text}
         contentContainerStyle={{ gap: 10 }}
       />
-      <Button textColor="#fff" buttonColor="red" style={{ width: "30%" }}>
+      <Button
+        textColor="#fff"
+        buttonColor="red"
+        style={{ width: "100%", borderRadius: "none", paddingVertical: 10 }}
+      >
         Submit
       </Button>
     </View>
