@@ -6,9 +6,11 @@ import { Ionicons } from "@expo/vector-icons";
 const Search = ({
   onChangeText,
   value,
+  onAddPress,
 }: {
-  onChangeText: () => void;
+  onChangeText: (text: string) => void;
   value: string;
+  onAddPress: () => void;
 }) => {
   const textInputStyle = StyleSheet.create({
     container: {
@@ -31,7 +33,7 @@ const Search = ({
         mode="outlined"
         style={textInputStyle.container}
       />
-      <Ionicons name="add" size={40} color="green" />
+      <Ionicons onPress={onAddPress} name="add" size={40} color="green" />
     </View>
   );
 };
