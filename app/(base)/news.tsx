@@ -1,6 +1,6 @@
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, StyleSheet, FlatList } from "react-native";
 import React from "react";
-import { ActivityIndicator, useTheme } from "react-native-paper";
+import { ActivityIndicator, useTheme, Text } from "react-native-paper";
 import { useQuery } from "@tanstack/react-query";
 import NewsCard from "@/components/NewsCard";
 
@@ -22,7 +22,7 @@ type NewsType = {
 
 const NewsScreen = () => {
   const theme = useTheme();
-  const { data, error, isPending } = useQuery({
+  const { data, error, isPending, isFetching, isSuccess } = useQuery({
     queryKey: ["news"],
     queryFn: async (): Promise<NewsType[] | undefined> => {
       const response = await fetch("http://127.0.0.1:8000/news");
@@ -42,11 +42,13 @@ const NewsScreen = () => {
       gap: 30,
     },
   });
+
   return (
     <View style={homeScreenStyle.container}>
-      {isPending ? (
+      {(isPending || isFetching) && (
         <ActivityIndicator size="large" color="#fff" />
-      ) : (
+      )}
+      {isSuccess && (
         <FlatList
           contentContainerStyle={{ gap: 10 }}
           data={data}
@@ -61,6 +63,11 @@ const NewsScreen = () => {
           )}
         />
       )}
+      {error ? (
+        <Text style={{ color: "red", fontWeight: 800 }} variant="bodyLarge">
+          {error?.message}
+        </Text>
+      ) : null}
     </View>
   );
 };
