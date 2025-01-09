@@ -3,6 +3,7 @@ import React from "react";
 import { ActivityIndicator, useTheme, Text } from "react-native-paper";
 import { useQuery } from "@tanstack/react-query";
 import NewsCard from "@/components/NewsCard";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type SourceType = {
   id: number | null;
@@ -44,7 +45,7 @@ const NewsScreen = () => {
   });
 
   return (
-    <View style={homeScreenStyle.container}>
+    <SafeAreaView style={homeScreenStyle.container}>
       {(isPending || isFetching) && (
         <ActivityIndicator size="large" color="#fff" />
       )}
@@ -68,7 +69,7 @@ const NewsScreen = () => {
           {error?.message}
         </Text>
       ) : null}
-    </View>
+    </SafeAreaView>
   );
 };
 

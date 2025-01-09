@@ -1,4 +1,4 @@
-import { StyleSheet, FlatList, View } from "react-native";
+import { StyleSheet, FlatList, View, SafeAreaView } from "react-native";
 import React, { useEffect, useState } from "react";
 import {
   useTheme,
@@ -121,7 +121,7 @@ const DashboardScreen = () => {
     updateListMutate(itemsSelectedList);
   };
   return (
-    <View style={dashboardScreenStyle.container}>
+    <SafeAreaView style={dashboardScreenStyle.container}>
       <Search
         onAddPress={onPressSubmit}
         onChangeText={onSearchChangeText}
@@ -245,7 +245,7 @@ const DashboardScreen = () => {
           </Modal>
         </Portal>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
