@@ -14,15 +14,6 @@ export default function BaseLayout() {
         }}
       />
       <Tabs.Screen
-        name="feeds"
-        options={{
-          title: "Feeds",
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="list" size={30} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="news"
         options={{
           title: "News",
