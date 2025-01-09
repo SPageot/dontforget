@@ -1,5 +1,5 @@
 import { StyleSheet, FlatList, View, SafeAreaView } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import {
   useTheme,
   Text,
@@ -14,14 +14,20 @@ import ItemSelected from "@/components/ItemSelected";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { BASE_API_URL } from "@/util/constants";
+import { ListStateType } from "@/types/types";
+import { listReducer } from "@/reducers/listReducer";
+
+const listState: ListStateType = {
+  searchValue: "",
+  isAddingPasskey: false,
+  isSearchingForList: false,
+  passkey: "",
+  itemSelectedList: [],
+};
 
 const ListScreen = () => {
   const theme = useTheme();
-  const [searchValue, setSearchValue] = useState<string>("");
-  const [isAddingPasskey, setIsAddingPasskey] = useState<boolean>(false);
-  const [isSearchingForList, setIsSearchingForList] = useState(false);
-  const [passkey, setPasskey] = useState<string>("");
-  const [itemsSelectedList, setItemsSelectedList] = useState<string[] | []>([]);
+  const [state, dispatch] = useReducer(listReducer, listState);
   const {
     mutate: listLookupMutate,
     data: listLookUpData,
@@ -38,7 +44,7 @@ const ListScreen = () => {
   const { mutate, isSuccess, isPending } = useMutation({
     mutationFn: async (itemsSelected: string[]) => {
       const response = await axios.post(`${BASE_API_URL}/list`, {
-        passkey,
+        passkey: state.passkey,
         list: itemsSelected,
       });
       const data = await response;
@@ -52,7 +58,7 @@ const ListScreen = () => {
   } = useMutation({
     mutationFn: async (itemsSelected: string[]) => {
       const response = await axios.put(`${BASE_API_URL}/update-list`, {
-        passkey,
+        passkey: state.passkey,
         list: itemsSelected,
       });
       const data = await response;
@@ -67,14 +73,16 @@ const ListScreen = () => {
     },
   });
 
-  const onSearchChangeText = (text: string) => setSearchValue(text);
+  const onSearchChangeText = (text: string) => {
+    dispatch({ type: "search", payload: text });
+  };
   const onPressSubmit = () => {
-    setItemsSelectedList((prev) => [...prev, searchValue]);
-    setSearchValue("");
+    dispatch({ type: "addToList", payload: state.searchValue });
+    dispatch({ type: "search", payload: "" });
   };
 
   const onRemovePress = (text: string) => {
-    setItemsSelectedList((prev) => prev.filter((item) => item !== text));
+    dispatch({ type: "removeFromList", payload: text });
   };
 
   const renderItems = ({ item }: { item: string }): React.ReactElement => (
@@ -82,26 +90,26 @@ const ListScreen = () => {
   );
 
   const onSubmitPress = () => {
-    mutate(itemsSelectedList);
+    mutate(state.itemSelectedList);
   };
 
   useEffect(() => {
     if (isLookUpSuccess) {
-      setItemsSelectedList(listLookUpData.list);
-      setIsSearchingForList(false);
+      dispatch({ type: "addList", payload: listLookUpData.list });
+      dispatch({ type: "isSearching", payload: false });
     }
   }, [isLookUpSuccess]);
 
   useEffect(() => {
     if (isSuccess) {
-      setItemsSelectedList([]);
-      setIsAddingPasskey(false);
-      setPasskey("");
+      dispatch({ type: "addList", payload: [] });
+      dispatch({ type: "isAddingPasskey", payload: false });
+      dispatch({ type: "passkey", payload: "" });
     }
   }, [isSuccess]);
 
   const onAddingPassKeyPress = () => {
-    setIsAddingPasskey(true);
+    dispatch({ type: "isAddingPasskey", payload: true });
   };
 
   const textInputStyle = StyleSheet.create({
@@ -111,26 +119,26 @@ const ListScreen = () => {
   });
 
   const onListLookUpPress = () => {
-    if (!isSearchingForList) {
-      setIsSearchingForList(true);
+    if (!state.isSearchingForList) {
+      dispatch({ type: "isSearching", payload: true });
       return;
     }
-    listLookupMutate(passkey);
+    listLookupMutate(state.passkey);
   };
 
   const onUpdateListPress = () => {
-    updateListMutate(itemsSelectedList);
+    updateListMutate(state.itemSelectedList);
   };
   return (
     <SafeAreaView style={dashboardScreenStyle.container}>
       <Search
         onAddPress={onPressSubmit}
         onChangeText={onSearchChangeText}
-        value={searchValue}
+        value={state.searchValue}
       />
-      {itemsSelectedList.length > 0 ? (
+      {state.itemSelectedList.length > 0 ? (
         <FlatList
-          data={itemsSelectedList}
+          data={state.itemSelectedList}
           renderItem={renderItems}
           keyExtractor={(text) => text}
           contentContainerStyle={{ gap: 10 }}
@@ -144,7 +152,7 @@ const ListScreen = () => {
           </Text>
         </View>
       )}
-      {itemsSelectedList.length > 0 && !isAddingPasskey ? (
+      {state.itemSelectedList.length > 0 && !state.isAddingPasskey ? (
         <Button
           textColor="#fff"
           buttonColor={isUpdateSuccess ? "green" : "red"}
@@ -165,18 +173,18 @@ const ListScreen = () => {
         </Button>
       )}
 
-      {(isAddingPasskey || isSearchingForList) && (
+      {(state.isAddingPasskey || state.isSearchingForList) && (
         <Portal>
           <Modal
             style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
-            visible={isAddingPasskey || isSearchingForList}
+            visible={state.isAddingPasskey || state.isSearchingForList}
             onDismiss={() => {
-              if (isAddingPasskey) {
-                setIsAddingPasskey(false);
+              if (state.isAddingPasskey) {
+                dispatch({ type: "isAddingPasskey", payload: false });
               }
 
-              if (isSearchingForList) {
-                setIsSearchingForList(false);
+              if (state.isSearchingForList) {
+                dispatch({ type: "isSearching", payload: false });
               }
             }}
           >
@@ -189,8 +197,10 @@ const ListScreen = () => {
               }}
             >
               <TextInput
-                value={passkey}
-                onChangeText={(text: string) => setPasskey(text)}
+                value={state.passkey}
+                onChangeText={(text: string) =>
+                  dispatch({ type: "passkey", payload: text })
+                }
                 style={textInputStyle.container}
               />
               <View
@@ -214,7 +224,9 @@ const ListScreen = () => {
                         paddingVertical: 10,
                       }}
                       onPress={
-                        isSearchingForList ? onListLookUpPress : onSubmitPress
+                        state.isSearchingForList
+                          ? onListLookUpPress
+                          : onSubmitPress
                       }
                     >
                       Submit List
@@ -228,12 +240,12 @@ const ListScreen = () => {
                         paddingVertical: 10,
                       }}
                       onPress={() => {
-                        if (isAddingPasskey) {
-                          setIsAddingPasskey(false);
+                        if (state.isAddingPasskey) {
+                          dispatch({ type: "isAddingPasskey", payload: false });
                         }
 
-                        if (isSearchingForList) {
-                          setIsSearchingForList(false);
+                        if (state.isSearchingForList) {
+                          dispatch({ type: "isSearching", payload: false });
                         }
                       }}
                     >
