@@ -18,7 +18,7 @@ export default function HomeScreen() {
   return (
     <View style={homeScreenStyle.container}>
       <Text style={{ fontWeight: "900", color: "#fff" }} variant="displayLarge">
-        Just Shopping Around
+        Dont Forget
       </Text>
       <Link
         style={{

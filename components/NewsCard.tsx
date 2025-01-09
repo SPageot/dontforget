@@ -14,7 +14,6 @@ const NewsCard = ({
   url: string;
   urlToImage: string;
 }) => {
-  console.log(url);
   return (
     <Card>
       <Card.Content>

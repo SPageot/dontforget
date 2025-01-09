@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import React from "react";
 import { TextInput } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,7 +14,7 @@ const Search = ({
 }) => {
   const textInputStyle = StyleSheet.create({
     container: {
-      height: 30,
+      height: 40,
       width: "75%",
     },
   });
@@ -33,7 +33,9 @@ const Search = ({
         mode="outlined"
         style={textInputStyle.container}
       />
-      <Ionicons onPress={onAddPress} name="add" size={40} color="green" />
+      {value && (
+        <Ionicons onPress={onAddPress} name="add" size={40} color="green" />
+      )}
     </View>
   );
 };
