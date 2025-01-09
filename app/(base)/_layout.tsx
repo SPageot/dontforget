@@ -5,9 +5,9 @@ export default function BaseLayout() {
   return (
     <Tabs screenOptions={{ headerShown: false }}>
       <Tabs.Screen
-        name="dashboard"
+        name="list"
         options={{
-          title: "Dashboard",
+          title: "List",
           tabBarIcon: ({ color }) => (
             <Ionicons name="home" size={30} color={color} />
           ),

@@ -14,7 +14,7 @@ import ItemSelected from "@/components/ItemSelected";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 
-const DashboardScreen = () => {
+const ListScreen = () => {
   const theme = useTheme();
   const [searchValue, setSearchValue] = useState<string>("");
   const [isAddingPasskey, setIsAddingPasskey] = useState<boolean>(false);
@@ -249,4 +249,4 @@ const DashboardScreen = () => {
   );
 };
 
-export default DashboardScreen;
+export default ListScreen;

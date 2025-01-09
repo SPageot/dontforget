@@ -1,6 +1,6 @@
 import { Link } from "expo-router";
 import { StyleSheet, View } from "react-native";
-import { Button, useTheme } from "react-native-paper";
+import { useTheme } from "react-native-paper";
 import { Text } from "react-native-paper";
 
 export default function HomeScreen() {
@@ -28,7 +28,7 @@ export default function HomeScreen() {
           color: "#fff",
           borderRadius: 20,
         }}
-        href="/dashboard"
+        href="/list"
       >
         Start
       </Link>
