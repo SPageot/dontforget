@@ -13,6 +13,7 @@ import { Search } from "@/components/Search";
 import ItemSelected from "@/components/ItemSelected";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { BASE_API_URL } from "@/util/constants";
 
 const ListScreen = () => {
   const theme = useTheme();
@@ -27,7 +28,7 @@ const ListScreen = () => {
     isSuccess: isLookUpSuccess,
   } = useMutation({
     mutationFn: async (passkey: string) => {
-      const response = await axios.post("http://127.0.0.1:8000/get-list", {
+      const response = await axios.post(`${BASE_API_URL}/get-list`, {
         passkey,
       });
       const data = await response;
@@ -36,7 +37,7 @@ const ListScreen = () => {
   });
   const { mutate, isSuccess, isPending } = useMutation({
     mutationFn: async (itemsSelected: string[]) => {
-      const response = await axios.post("http://127.0.0.1:8000/list", {
+      const response = await axios.post(`${BASE_API_URL}/list`, {
         passkey,
         list: itemsSelected,
       });
@@ -50,7 +51,7 @@ const ListScreen = () => {
     isPending: isUpdatePending,
   } = useMutation({
     mutationFn: async (itemsSelected: string[]) => {
-      const response = await axios.put("http://127.0.0.1:8000/update-list", {
+      const response = await axios.put(`${BASE_API_URL}/update-list`, {
         passkey,
         list: itemsSelected,
       });
