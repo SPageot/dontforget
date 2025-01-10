@@ -1,4 +1,4 @@
-import { View, StyleSheet, SafeAreaView } from "react-native";
+import { StyleSheet, SafeAreaView } from "react-native";
 import React from "react";
 import { useTheme } from "react-native-paper";
 import { ScreenContainerType } from "@/types/types";

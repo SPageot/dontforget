@@ -1,4 +1,4 @@
-import { View, Pressable } from "react-native";
+import { Pressable } from "react-native";
 import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "react-native-paper";

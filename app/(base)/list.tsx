@@ -12,6 +12,7 @@ import EmptyList from "@/components/EmptyList";
 
 import ListLookUpModal from "@/components/ListLookUpModal";
 import ListButtons from "@/components/ListButtons";
+import { AxiosError } from "axios";
 
 const listState: ListStateType = {
   searchValue: "",
@@ -34,6 +35,25 @@ const ListScreen = () => {
     isError: isLookupError,
     reset: lookUpReset,
   } = useMutation({
+    onError: (error) => {
+      if (error instanceof AxiosError) {
+        if (error.response) {
+          if (error.response.data.detail) {
+            toast.show(error.response.data.detail, {
+              duration: 5000,
+            });
+          } else {
+            toast.show(error.response.data.error, {
+              duration: 5000,
+            });
+          }
+        } else {
+          toast.show(error.message, {
+            duration: 5000,
+          });
+        }
+      }
+    },
     mutationFn: getList,
   });
   const {
@@ -43,16 +63,53 @@ const ListScreen = () => {
     isPending: isCreateListPending,
     reset: createReset,
   } = useMutation({
+    onError: (error) => {
+      if (error instanceof AxiosError) {
+        if (error.response) {
+          if (error.response.data.detail) {
+            toast.show(error.response.data.detail, {
+              duration: 5000,
+            });
+          } else {
+            toast.show(error.response.data.error, {
+              duration: 5000,
+            });
+          }
+        } else {
+          toast.show(error.message, {
+            duration: 5000,
+          });
+        }
+      }
+    },
     mutationFn: addList,
   });
   const {
     data: updatedList,
     mutate: updateListMutate,
-    isError: isUpdateError,
     isSuccess: isUpdateSuccess,
     isPending: isUpdatePending,
     reset: updateReset,
   } = useMutation({
+    onError: (error) => {
+      if (error instanceof AxiosError) {
+        if (error.response) {
+          if (error.response.data.detail) {
+            toast.show(error.response.data.detail, {
+              duration: 5000,
+            });
+          } else {
+            toast.show(error.response.data.error, {
+              duration: 5000,
+            });
+          }
+        } else {
+          toast.show(error.message, {
+            duration: 5000,
+          });
+        }
+      }
+    },
     mutationFn: updateList,
   });
 
@@ -66,12 +123,6 @@ const ListScreen = () => {
       dispatch({ type: "addList", payload: listLookUpData.list });
       dispatch({ type: "isSearching", payload: false });
       return;
-    }
-
-    if (isLookupError) {
-      toast.show("Error Finding List", {
-        duration: 5000,
-      });
     }
   }, [isLookUpSuccess, isLookupError]);
 
@@ -87,13 +138,7 @@ const ListScreen = () => {
       dispatch({ type: "passkey", payload: "" });
       return;
     }
-
-    if (isUpdateError) {
-      toast.show("Error Updating List", {
-        duration: 5000,
-      });
-    }
-  }, [isUpdateSuccess, isUpdateError]);
+  }, [isUpdateSuccess]);
 
   useEffect(() => {
     if (isCreateListSuccess) {
