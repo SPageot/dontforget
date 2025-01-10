@@ -1,4 +1,5 @@
 import React from "react";
+import { Linking } from "react-native";
 import { Card, Text } from "react-native-paper";
 
 const NewsCard = ({
@@ -15,7 +16,13 @@ const NewsCard = ({
   urlToImage: string;
 }) => {
   return (
-    <Card>
+    <Card
+      onPress={() => {
+        Linking.openURL(url).catch((err) =>
+          console.error("Failed to open URL:", err)
+        );
+      }}
+    >
       <Card.Content>
         <Text variant="titleLarge">{title}</Text>
         <Text variant="bodySmall">By {author}</Text>

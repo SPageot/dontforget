@@ -1,22 +1,10 @@
+import ScreenContainer from "@/components/ScreenContainer";
 import { Link } from "expo-router";
-import { StyleSheet, View } from "react-native";
-import { useTheme } from "react-native-paper";
 import { Text } from "react-native-paper";
 
 export default function HomeScreen() {
-  const theme = useTheme();
-
-  const homeScreenStyle = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: theme.colors.primary,
-      justifyContent: "center",
-      alignItems: "center",
-      gap: 30,
-    },
-  });
   return (
-    <View style={homeScreenStyle.container}>
+    <ScreenContainer>
       <Text style={{ fontWeight: "900", color: "#fff" }} variant="displayLarge">
         Dont Forget
       </Text>
@@ -32,6 +20,6 @@ export default function HomeScreen() {
       >
         Start
       </Link>
-    </View>
+    </ScreenContainer>
   );
 }

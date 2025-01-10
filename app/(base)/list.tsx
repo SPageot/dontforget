@@ -1,21 +1,17 @@
-import { StyleSheet, FlatList, View, SafeAreaView } from "react-native";
-import React, { useEffect, useReducer, useState } from "react";
-import {
-  useTheme,
-  Text,
-  Button,
-  ActivityIndicator,
-  Portal,
-  Modal,
-  TextInput,
-} from "react-native-paper";
+import { StyleSheet, FlatList, SafeAreaView } from "react-native";
+import React, { useEffect, useReducer } from "react";
+import { useTheme, Portal, Modal } from "react-native-paper";
 import { Search } from "@/components/Search";
 import ItemSelected from "@/components/ItemSelected";
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
-import { BASE_API_URL } from "@/util/constants";
 import { ListStateType } from "@/types/types";
 import { listReducer } from "@/reducers/listReducer";
+import { addList, getList, updateList } from "@/api/mutations/listMutations";
+import { useToast } from "expo-toast";
+import EmptyList from "@/components/EmptyList";
+
+import ListLookUpModal from "@/components/ListLookUpModal";
+import ListButtons from "@/components/ListButtons";
 
 const listState: ListStateType = {
   searchValue: "",
@@ -27,49 +23,103 @@ const listState: ListStateType = {
 
 const ListScreen = () => {
   const theme = useTheme();
+  const toast = useToast();
+
   const [state, dispatch] = useReducer(listReducer, listState);
   const {
     mutate: listLookupMutate,
     data: listLookUpData,
     isSuccess: isLookUpSuccess,
+    isPending: isLookUpPending,
+    isError: isLookupError,
+    reset: lookUpReset,
   } = useMutation({
-    mutationFn: async (passkey: string) => {
-      const response = await axios.post(`${BASE_API_URL}/get-list`, {
-        passkey,
-      });
-      const data = await response;
-      return data.data;
-    },
-  });
-  const { mutate, isSuccess, isPending } = useMutation({
-    mutationFn: async (itemsSelected: string[]) => {
-      const response = await axios.post(`${BASE_API_URL}/list`, {
-        passkey: state.passkey,
-        list: itemsSelected,
-      });
-      const data = await response;
-      return data.data;
-    },
+    mutationFn: getList,
   });
   const {
+    mutate: createListMutate,
+    isSuccess: isCreateListSuccess,
+    isError: isCreateError,
+    isPending: isCreateListPending,
+    reset: createReset,
+  } = useMutation({
+    mutationFn: addList,
+  });
+  const {
+    data: updatedList,
     mutate: updateListMutate,
+    isError: isUpdateError,
     isSuccess: isUpdateSuccess,
     isPending: isUpdatePending,
+    reset: updateReset,
   } = useMutation({
-    mutationFn: async (itemsSelected: string[]) => {
-      const response = await axios.put(`${BASE_API_URL}/update-list`, {
-        passkey: state.passkey,
-        list: itemsSelected,
-      });
-      const data = await response;
-      return data.data;
-    },
+    mutationFn: updateList,
   });
+
+  useEffect(() => {
+    if (isLookUpSuccess) {
+      updateReset();
+      createReset();
+      toast.show("List Found!!!", {
+        duration: 5000,
+      });
+      dispatch({ type: "addList", payload: listLookUpData.list });
+      dispatch({ type: "isSearching", payload: false });
+      return;
+    }
+
+    if (isLookupError) {
+      toast.show("Error Finding List", {
+        duration: 5000,
+      });
+    }
+  }, [isLookUpSuccess, isLookupError]);
+
+  useEffect(() => {
+    if (isUpdateSuccess) {
+      createReset();
+      lookUpReset();
+      toast.show("List Successfully Updated!", {
+        duration: 5000,
+      });
+      dispatch({ type: "addList", payload: updatedList });
+      dispatch({ type: "isAddingPasskey", payload: false });
+      dispatch({ type: "passkey", payload: "" });
+      return;
+    }
+
+    if (isUpdateError) {
+      toast.show("Error Updating List", {
+        duration: 5000,
+      });
+    }
+  }, [isUpdateSuccess, isUpdateError]);
+
+  useEffect(() => {
+    if (isCreateListSuccess) {
+      lookUpReset();
+      updateReset();
+      toast.show("List Successfully Shareable!", {
+        duration: 5000,
+      });
+      dispatch({ type: "addList", payload: [] });
+      dispatch({ type: "isAddingPasskey", payload: false });
+      dispatch({ type: "passkey", payload: "" });
+      return;
+    }
+
+    if (isCreateError) {
+      toast.show("Error Creating List", {
+        duration: 5000,
+      });
+    }
+  }, [isCreateListSuccess, isCreateError]);
 
   const dashboardScreenStyle = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.colors.primary,
+      position: "relative",
     },
   });
 
@@ -81,42 +131,21 @@ const ListScreen = () => {
     dispatch({ type: "search", payload: "" });
   };
 
-  const onRemovePress = (text: string) => {
-    dispatch({ type: "removeFromList", payload: text });
-  };
-
   const renderItems = ({ item }: { item: string }): React.ReactElement => (
     <ItemSelected itemName={item} onRemovePress={() => onRemovePress(item)} />
   );
-
-  const onSubmitPress = () => {
-    mutate(state.itemSelectedList);
-  };
-
-  useEffect(() => {
-    if (isLookUpSuccess) {
-      dispatch({ type: "addList", payload: listLookUpData.list });
-      dispatch({ type: "isSearching", payload: false });
-    }
-  }, [isLookUpSuccess]);
-
-  useEffect(() => {
-    if (isSuccess) {
-      dispatch({ type: "addList", payload: [] });
-      dispatch({ type: "isAddingPasskey", payload: false });
-      dispatch({ type: "passkey", payload: "" });
-    }
-  }, [isSuccess]);
 
   const onAddingPassKeyPress = () => {
     dispatch({ type: "isAddingPasskey", payload: true });
   };
 
-  const textInputStyle = StyleSheet.create({
-    container: {
-      width: "95%",
-    },
-  });
+  const onRemovePress = (text: string) => {
+    dispatch({ type: "removeFromList", payload: text });
+  };
+
+  const onSubmitPress = () => {
+    createListMutate(state);
+  };
 
   const onListLookUpPress = () => {
     if (!state.isSearchingForList) {
@@ -127,8 +156,9 @@ const ListScreen = () => {
   };
 
   const onUpdateListPress = () => {
-    updateListMutate(state.itemSelectedList);
+    updateListMutate(state);
   };
+
   return (
     <SafeAreaView style={dashboardScreenStyle.container}>
       <Search
@@ -144,117 +174,44 @@ const ListScreen = () => {
           contentContainerStyle={{ gap: 10 }}
         />
       ) : (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <Text variant="bodyMedium" style={{ color: "#fff", fontWeight: 800 }}>
-            Add Items to the list
-          </Text>
-        </View>
+        <EmptyList message="Add Items to the list" />
       )}
-      {state.itemSelectedList.length > 0 && !state.isAddingPasskey ? (
-        <Button
-          textColor="#fff"
-          buttonColor={isUpdateSuccess ? "green" : "red"}
-          style={{ width: "100%", borderRadius: "none", paddingVertical: 10 }}
-          onPress={isLookUpSuccess ? onUpdateListPress : onAddingPassKeyPress}
-        >
-          {isLookUpSuccess ? "Update List" : "Add Passkey To Share"}
-          {isUpdatePending && <ActivityIndicator size={20} color="#fffo" />}
-        </Button>
-      ) : (
-        <Button
-          textColor="#fff"
-          buttonColor="red"
-          style={{ width: "100%", borderRadius: "none", paddingVertical: 10 }}
-          onPress={onListLookUpPress}
-        >
-          List Lookup
-        </Button>
-      )}
+      <ListButtons
+        onUpdateListPress={onUpdateListPress}
+        onListLookUpPress={onListLookUpPress}
+        state={state}
+        isLookUpSuccess={isLookUpSuccess}
+        isLookUpPending={isLookUpPending}
+        isUpdatePending={isUpdatePending}
+        onAddingPassKeyPress={onAddingPassKeyPress}
+      />
 
       {(state.isAddingPasskey || state.isSearchingForList) && (
         <Portal>
           <Modal
             style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
             visible={state.isAddingPasskey || state.isSearchingForList}
-            onDismiss={() => {
-              if (state.isAddingPasskey) {
-                dispatch({ type: "isAddingPasskey", payload: false });
-              }
-
-              if (state.isSearchingForList) {
-                dispatch({ type: "isSearching", payload: false });
-              }
-            }}
           >
-            <View
-              style={{
-                height: "100%",
-                justifyContent: "center",
-                gap: 30,
-                alignItems: "center",
-              }}
-            >
-              <TextInput
-                value={state.passkey}
-                onChangeText={(text: string) =>
-                  dispatch({ type: "passkey", payload: text })
+            <ListLookUpModal
+              state={state}
+              onChangeText={(text: string) =>
+                dispatch({ type: "passkey", payload: text })
+              }
+              isLookUpPending={isLookUpPending}
+              onOptionsPress={
+                state.isSearchingForList ? onListLookUpPress : onSubmitPress
+              }
+              onCancelPress={() => {
+                if (state.isAddingPasskey) {
+                  dispatch({ type: "isAddingPasskey", payload: false });
                 }
-                style={textInputStyle.container}
-              />
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-evenly",
-                  alignItems: "center",
-                  width: "100%",
-                }}
-              >
-                {isPending ? (
-                  <ActivityIndicator size={20} color="#fff" />
-                ) : (
-                  <>
-                    <Button
-                      textColor="#fff"
-                      buttonColor="red"
-                      style={{
-                        width: "40%",
-                        borderRadius: "none",
-                        paddingVertical: 10,
-                      }}
-                      onPress={
-                        state.isSearchingForList
-                          ? onListLookUpPress
-                          : onSubmitPress
-                      }
-                    >
-                      Submit List
-                    </Button>
-                    <Button
-                      textColor="#fff"
-                      buttonColor="red"
-                      style={{
-                        width: "40%",
-                        borderRadius: "none",
-                        paddingVertical: 10,
-                      }}
-                      onPress={() => {
-                        if (state.isAddingPasskey) {
-                          dispatch({ type: "isAddingPasskey", payload: false });
-                        }
 
-                        if (state.isSearchingForList) {
-                          dispatch({ type: "isSearching", payload: false });
-                        }
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                )}
-              </View>
-            </View>
+                if (state.isSearchingForList) {
+                  dispatch({ type: "isSearching", payload: false });
+                }
+              }}
+              isCreateListPending={isCreateListPending}
+            />
           </Modal>
         </Portal>
       )}

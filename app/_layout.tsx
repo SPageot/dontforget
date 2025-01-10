@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ToastProvider } from "expo-toast";
 import {
   MD3LightTheme as DefaultTheme,
   PaperProvider,
@@ -17,13 +18,15 @@ const theme = {
 
 export default function RootLayout() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <PaperProvider theme={theme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(base)" />
-          <Stack.Screen name="index" />
-        </Stack>
-      </PaperProvider>
-    </QueryClientProvider>
+    <ToastProvider>
+      <QueryClientProvider client={queryClient}>
+        <PaperProvider theme={theme}>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(base)" />
+            <Stack.Screen name="index" />
+          </Stack>
+        </PaperProvider>
+      </QueryClientProvider>
+    </ToastProvider>
   );
 }
