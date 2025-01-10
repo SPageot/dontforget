@@ -1,4 +1,4 @@
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, SafeAreaView } from "react-native";
 import React from "react";
 import { useTheme } from "react-native-paper";
 import { ScreenContainerType } from "@/types/types";
@@ -16,7 +16,9 @@ const ScreenContainer: React.FC<ScreenContainerType> = ({
       gap: 30,
     },
   });
-  return <View style={homeScreenStyle.container}>{children}</View>;
+  return (
+    <SafeAreaView style={homeScreenStyle.container}>{children}</SafeAreaView>
+  );
 };
 
 export default ScreenContainer;
